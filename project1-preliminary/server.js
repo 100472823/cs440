@@ -88,5 +88,5 @@ app.post('/signup', (req, res) => {
 
 // Arrancamos el servidor
 app.listen(PORT, () => {
-  console.log(`Servidor funcionando en http://localhost:${PORT}`);
+  console.log(`Servidor funcionando en http://127.0.0.1:${PORT}`);
 });
