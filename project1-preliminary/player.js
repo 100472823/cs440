@@ -1,13 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     fetch('/songs')
-        .then(response => response.json())
-        .then(songs => {
-            const songList = document.getElementById('song-list');
-            songs.forEach(song => {
-                const li = document.createElement('li');
-                li.textContent = song;
-                songList.appendChild(li);
-            });
-        })
-        .catch(error => console.error('Error fetching songs:', error));
-});
+      .then((res) => res.json())
+      .then((songs) => {
+        const list = document.getElementById('song-list');
+        songs.forEach((song) => {
+          const li = document.createElement('li');
+          li.textContent = song;
+          list.appendChild(li);
+        });
+      })
+      .catch((err) => console.error('Error:', err));
+  });
+  
