@@ -1,92 +1,158 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const app = express();
-const PORT = 5500;  // Puedes usar el puerto que quieras
+const PORT = 5500;
 
-// Permite servir archivos estáticos (HTML, CSS, JS, imágenes) desde la misma carpeta:
+// Import Models
+const User = require('./models/user');
+const MusicLibrary = require('./models/musiclibrary');
+const Playlist = require('./models/playlist');
+const RecommenderEngine = require('./models/recommenderengine');
+
 app.use(express.static(__dirname));
-
-// Para parsear JSON y datos de formularios en el body:
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ENDPOINT: Obtener lista de canciones
-app.get('/songs', (req, res) => {
-  fs.readFile('songs.txt', 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error al leer songs.txt.' });
+// ---------------------- USER ROUTES ----------------------
+
+// User Signup
+app.post('/signup', async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: 'Username and password are required.' });
     }
-    const songs = data
-      .split('\n')
-      .map((song) => song.trim())
-      .filter((song) => song);
-    res.json(songs);
-  });
+    try {
+        const result = await User.register(username, password);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: 'Error processing signup.' });
+    }
 });
 
-// ENDPOINT: Login de usuario
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-
-  fs.readFile('database.txt', 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error al procesar la base de datos.' });
+// User Login
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const valid = await User.validateCredentials(username, password);
+        if (valid) {
+            return res.json({ success: true });
+        }
+        res.status(401).json({ success: false, message: 'Invalid credentials.' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error processing login.' });
     }
-
-    // Cada línea tiene formato:  usuario/password
-    const users = data.split('\n').filter(Boolean);
-    for (let user of users) {
-      const [storedUsername, storedPassword] = user.split('/');
-      if (
-        storedUsername &&
-        storedPassword &&
-        username.trim() === storedUsername.trim() &&
-        password.trim() === storedPassword.trim()
-      ) {
-        return res.json({ success: true });
-      }
-    }
-    // Si no coincide ninguno, devolvemos error
-    res.json({ success: false, message: 'Credenciales inválidas.' });
-  });
 });
 
-// ENDPOINT: Registro de usuario
-app.post('/signup', (req, res) => {
-  const { username, password } = req.body;
-
-  // Validaciones básicas
-  if (!username || !password) {
-    return res.json({ success: false, message: 'Se requieren username y password.' });
-  }
-
-  fs.readFile('database.txt', 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error al procesar la base de datos.' });
+// Like a Song
+app.post('/user/like', async (req, res) => {
+    const { username, songId } = req.body;
+    try {
+        await User.likeSong(username, songId);
+        res.json({ success: true, message: 'Song liked successfully!' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error liking the song.' });
     }
-
-    // Revisamos si el usuario ya existe
-    const lines = data.split('\n').filter(Boolean);
-    for (let line of lines) {
-      const [storedUsername] = line.split('/');
-      if (storedUsername && username.trim() === storedUsername.trim()) {
-        return res.json({ success: false, message: 'El usuario ya existe.' });
-      }
-    }
-
-    // Si no existe, lo añadimos
-    const newLine = `${username}/${password}\n`;
-    fs.appendFile('database.txt', newLine, (err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Error al guardar el nuevo usuario.' });
-      }
-      res.json({ success: true });
-    });
-  });
 });
 
-// Arrancamos el servidor
+// ---------------------- SONG ROUTES ----------------------
+
+// Get All Songs
+app.get('/songs', async (req, res) => {
+    try {
+        const songs = await MusicLibrary.getAllSongs();
+        res.json(songs);
+    } catch (error) {
+        res.status(500).json({ error: 'Error retrieving songs.' });
+    }
+});
+
+// Find Song by Genre
+app.get('/songs/genre/:genre', async (req, res) => {
+    try {
+        const songs = await MusicLibrary.findSongByGenre(req.params.genre);
+        res.json(songs);
+    } catch (error) {
+        res.status(500).json({ error: 'Error retrieving songs by genre.' });
+    }
+});
+
+// Find Song by Artist
+app.get('/songs/artist/:artist', async (req, res) => {
+    try {
+        const songs = await MusicLibrary.findSongByArtist(req.params.artist);
+        res.json(songs);
+    } catch (error) {
+        res.status(500).json({ error: 'Error retrieving songs by artist.' });
+    }
+});
+
+// ---------------------- PLAYLIST ROUTES ----------------------
+
+// Create Playlist
+app.post('/playlist/create', async (req, res) => {
+    const { username, name } = req.body;
+    try {
+        const newPlaylist = await User.createPlaylist(username, name);
+        res.json({ success: true, playlist: newPlaylist });
+    } catch (error) {
+        res.status(500).json({ error: 'Error creating playlist.' });
+    }
+});
+
+// Add Song to Playlist
+app.post('/playlist/add', async (req, res) => {
+    const { username, playlistId, songId } = req.body;
+    try {
+        const updatedPlaylist = await Playlist.addSong(username, playlistId, songId);
+        res.json({ success: true, playlist: updatedPlaylist });
+    } catch (error) {
+        res.status(500).json({ error: 'Error adding song to playlist.' });
+    }
+});
+
+// Remove Song from Playlist
+app.post('/playlist/remove', async (req, res) => {
+    const { username, playlistId, songId } = req.body;
+    try {
+        const updatedPlaylist = await Playlist.removeSong(username, playlistId, songId);
+        res.json({ success: true, playlist: updatedPlaylist });
+    } catch (error) {
+        res.status(500).json({ error: 'Error removing song from playlist.' });
+    }
+});
+
+// Shuffle Playlist
+app.get('/playlist/shuffle/:playlistId', async (req, res) => {
+    try {
+        const shuffledPlaylist = await Playlist.shuffle(req.params.playlistId);
+        res.json(shuffledPlaylist);
+    } catch (error) {
+        res.status(500).json({ error: 'Error shuffling playlist.' });
+    }
+});
+
+// ---------------------- RECOMMENDATION ROUTES ----------------------
+
+// Get Recommendations for User
+app.get('/recommendations/:username', async (req, res) => {
+    try {
+        const recommendations = await RecommenderEngine.generateRecommendations(req.params.username);
+        res.json(recommendations);
+    } catch (error) {
+        res.status(500).json({ error: 'Error generating recommendations.' });
+    }
+});
+
+// Get Trending Songs
+app.get('/recommendations/trending', async (req, res) => {
+    try {
+        const trendingSongs = await RecommenderEngine.getTrendingSongs();
+        res.json(trendingSongs);
+    } catch (error) {
+        res.status(500).json({ error: 'Error retrieving trending songs.' });
+    }
+});
+
+// start server
 app.listen(PORT, () => {
-  console.log(`Servidor funcionando en http://127.0.0.1:${PORT}`);
+    console.log(`Server running at http://127.0.0.1:${PORT}`);
 });

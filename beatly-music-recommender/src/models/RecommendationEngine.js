@@ -3,17 +3,20 @@ class RecommendationEngine {
         this.algorithmType = algorithmType;
     }
 
-    getTrendingSongs(musicLibrary) {
-        // Placeholder logic for trending songs
-        return musicLibrary.getAllSongs().slice(0, 5);
+    async getTrendingSongs(musicLibrary) {
+        const songs = await musicLibrary.getAllSongs();
+        return songs.slice(0, 5); // Placeholder for trending logic
     }
 
-    generateRecommendations(user) {
-        // Basic recommendation: recommend songs from the same genre as liked songs
+    async generateRecommendations(user, musicLibrary) {
+        await musicLibrary.loadSongs();
         if (user.likedSongs.length === 0) return [];
 
         const likedGenres = new Set(user.likedSongs.map(song => song.genre));
-        return user.likedSongs.filter(song => likedGenres.has(song.genre));
+        
+        return musicLibrary.songs.filter(song => 
+            likedGenres.has(song.genre) && !user.likedSongs.some(likedSong => likedSong.id === song.id)
+        );
     }
 }
 

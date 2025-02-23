@@ -2,12 +2,12 @@ class Playlist {
     constructor(id, name, owner) {
         this.id = id;
         this.name = name;
-        this.songs = []; // Array of Song objects
-        this.owner = owner; // User object
+        this.songs = [];
+        this.owner = owner;
     }
 
     addSong(song) {
-        if (!this.songs.includes(song)) {
+        if (!this.songs.find(s => s.id === song.id)) {
             this.songs.push(song);
         }
     }
