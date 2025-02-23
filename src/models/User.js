@@ -1,17 +1,27 @@
-// User Class
 class User {
-    constructor(id, name, preferences = []) {
+    constructor(id, username, password) {
         this.id = id;
-        this.name = name;
-        this.preferences = preferences; // e.g., ["rock", "pop"]
-        this.playlists = [];
+        this.username = username;
+        this.password = password;
+        this.likedSongs = []; // Array of Song objects
+        this.playlists = []; // Array of Playlist objects
     }
 
-    addPlaylist(playlist) {
+    createPlaylist(name) {
+        const playlist = new Playlist(this.playlists.length + 1, name, this);
         this.playlists.push(playlist);
+        return playlist;
     }
 
-    updatePreferences(preferences) {
-        this.preferences = preferences;
+    likeSong(song) {
+        if (!this.likedSongs.includes(song)) {
+            this.likedSongs.push(song);
+        }
+    }
+
+    getRecommendations(recommendationEngine) {
+        return recommendationEngine.generateRecommendations(this);
     }
 }
+
+module.exports = User;
