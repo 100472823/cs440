@@ -3,12 +3,19 @@ const app = express();
 const PORT = 5500;
 
 // Import Models
-const User = require('./models/user');
-const MusicLibrary = require('./models/musiclibrary');
-const Playlist = require('./models/playlist');
-const RecommenderEngine = require('./models/recommenderengine');
+const User = require('./src/models/User.js');
+const MusicLibrary = require('./src/models/MusicLibrary.js');
+const Playlist = require('./src/models/Playlist.js');
+const RecommenderEngine = require('./src/models/RecommendationEngine.js');
 
-app.use(express.static(__dirname));
+
+
+
+app.use(express.static(__dirname + '/public'));
+
+app.use('/client', express.static(__dirname + '/client'));
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -59,14 +66,22 @@ app.post('/user/like', async (req, res) => {
 app.get('/songs', async (req, res) => {
     try {
         const songs = await MusicLibrary.getAllSongs();
+
+        if (!Array.isArray(songs)) {
+            console.error("ERROR: Expected an array but got:", songs);
+            return res.status(500).json({ error: "Internal Server Error: Invalid songs data." });
+        }
+
+        console.log("🎵 Sending all songs:", songs);
         res.json(songs);
     } catch (error) {
+        console.error('Error retrieving songs:', error);
         res.status(500).json({ error: 'Error retrieving songs.' });
     }
 });
 
 // Find Song by Genre
-app.get('/songs/genre/:genre', async (req, res) => {
+app.get('/database/songs/genre/:genre', async (req, res) => {
     try {
         const songs = await MusicLibrary.findSongByGenre(req.params.genre);
         res.json(songs);
@@ -76,7 +91,7 @@ app.get('/songs/genre/:genre', async (req, res) => {
 });
 
 // Find Song by Artist
-app.get('/songs/artist/:artist', async (req, res) => {
+app.get('/database/songs/artist/:artist', async (req, res) => {
     try {
         const songs = await MusicLibrary.findSongByArtist(req.params.artist);
         res.json(songs);

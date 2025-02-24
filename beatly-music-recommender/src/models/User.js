@@ -2,7 +2,10 @@ const fs = require('fs').promises;
 const path = require('path');
 const Playlist = require('./Playlist');
 
-const dbPath = path.join(__dirname, '..', 'database.txt');
+//const dbPath = path.join(__dirname, '..', 'database', 'database.json');
+const dbPath = path.join(__dirname, '..','..', 'database', 'database.json');
+
+
 
 class User {
     constructor(id, username, password) {
@@ -35,17 +38,62 @@ class User {
     }
 
     static async register(username, password) {
-        const existingUser = await User.getUser(username);
-        if (existingUser) {
-            return { success: false, message: 'User already exists.' };
+        console.log("📝 Attempting to register user:", username); // Debugging step
+    
+        const users = await readDatabase(); // Read existing users
+        console.log("📜 Current database users:", users); // Debugging step
+    
+        // Check if user already exists
+        if (users.some(user => user.username === username)) {
+            console.log("User already exists:", username);
+            return { success: false, message: 'Username already taken.' };
         }
-        await fs.appendFile(dbPath, `${username}/${password}\n`);
-        return { success: true };
+    
+        // Add new user to the database
+        const newUser = { username, password };
+        users.push(newUser);
+    
+        try {
+            await fs.writeFile(dbPath, JSON.stringify(users, null, 2)); // Overwrite file
+            console.log("User added successfully:", newUser);
+            return { success: true, message: 'Signup successful!' };
+        } catch (error) {
+            console.error("Error writing to database:", error);
+            return { success: false, message: 'Error saving user.' };
+        }
     }
+    
 
     static async validateCredentials(username, password) {
-        const user = await User.getUser(username);
-        return user && user.password === password;
+        console.log("Validating credentials for:", username); //  Debugging step
+
+        const users = await readDatabase();
+        console.log("Database users:", users); // Debugging step
+
+        const user = users.find(u => u.username === username && u.password === password);
+
+        if (user) {
+            console.log("User found in database:", username);
+            return true;
+        }
+
+        console.log("User NOT found in database:", username);
+        return false;
+    }
+}
+
+async function readDatabase() {
+    try {
+        console.log("Reading database from:", dbPath); //  Debugging step
+        const data = await fs.readFile(dbPath, 'utf8');
+
+        console.log("Raw database content:", data); // Debugging step
+        const users = JSON.parse(data); //  Parse JSON
+        console.log("Parsed database users:", users); // Debugging step
+        return users;
+    } catch (error) {
+        console.error('Error reading database:', error);
+        return [];
     }
 }
 

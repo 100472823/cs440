@@ -1,0 +1,26 @@
+[
+  {
+    "username": "admin",
+    "password": "1234"
+  },
+  {
+    "username": "user1",
+    "password": "password"
+  },
+  {
+    "username": "musiclover",
+    "password": "music123"
+  },
+  {
+    "username": "testuser",
+    "password": "testpass"
+  },
+  {
+    "username": "hershey",
+    "password": "hershey"
+  },
+  {
+    "username": "hershey1",
+    "password": "hershey1"
+  }
+]
