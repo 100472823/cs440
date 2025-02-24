@@ -18,19 +18,19 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
       .then((data) => {
         const message = document.getElementById('message');
         if (data.success) {
-          message.textContent = '¡Login exitoso! Redirigiendo...';
+          message.textContent = 'Successful Login :)';
           message.style.color = 'green';
           // Rediriges, por ejemplo, al index o a otra página:
           setTimeout(() => (window.location.href = 'index.html'), 2000);
         } else {
-          message.textContent = data.message || 'Credenciales inválidas.';
+          message.textContent = data.message || 'Invalid Credentials';
           message.style.color = 'red';
         }
       })
       .catch((error) => {
         console.error('Error:', error);
         document.getElementById('message').textContent =
-          'Error de servidor. Intenta más tarde.';
+          'Server Error. Try again later';
         document.getElementById('message').style.color = 'red';
       });
   });

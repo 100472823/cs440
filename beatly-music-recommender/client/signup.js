@@ -20,11 +20,11 @@ document.getElementById('signup-form').addEventListener('submit', function(event
       .then((data) => {
         const message = document.getElementById('message');
         if (data.success) {
-          message.textContent = '¡Registro exitoso! Redirigiendo al login...';
+          message.textContent = 'Successful sign up :)';
           message.style.color = 'green';
           setTimeout(() => (window.location.href = 'login.html'), 2000);
         } else {
-          message.textContent = data.message || 'Error en el registro.';
+          message.textContent = data.message || 'Sign Up Error';
           message.style.color = 'red';
         }
       })
