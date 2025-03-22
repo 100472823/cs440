@@ -80,7 +80,32 @@ class User {
         console.log("User NOT found in database:", username);
         return false;
     }
+
+    static async likeSongInDb(username, songTitle) {
+        const users = await readDatabase();
+        const user = users.find(u => u.username === username);
+    
+        if (!user) throw new Error('User not found');
+    
+        if (!user.likedSongs) user.likedSongs = [];
+    
+        if (!user.likedSongs.includes(songTitle)) {
+            user.likedSongs.push(songTitle);
+            await fs.writeFile(dbPath, JSON.stringify(users, null, 2));
+        }
+    }
+    
+    static async getLikedSongs(username) {
+        const users = await readDatabase();
+        const user = users.find(u => u.username === username);
+        if (!user || !user.likedSongs) return [];
+    
+        const songs = JSON.parse(await fs.readFile(path.join(__dirname, '../../database/songs.json')));
+        return songs.filter(song => user.likedSongs.includes(song.title));
+    }    
 }
+
+
 
 async function readDatabase() {
     try {

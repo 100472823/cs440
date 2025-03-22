@@ -17,16 +17,23 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
       .then((response) => response.json())
       .then((data) => {
         const message = document.getElementById('message');
+        console.log(" Response from server:", data);
+      
         if (data.success) {
+          console.log(" Login success! Setting user and redirecting...");
+          localStorage.setItem('loggedInUser', username);
           message.textContent = 'Successful Login :)';
           message.style.color = 'green';
-          // Rediriges, por ejemplo, al index o a otra página:
-          setTimeout(() => (window.location.href = 'index.html'), 2000);
+      
+          // Test: redirect immediately
+          window.location.href = 'homepage.html';
         } else {
+          console.log(" Login failed.");
           message.textContent = data.message || 'Invalid Credentials';
           message.style.color = 'red';
         }
       })
+      
       .catch((error) => {
         console.error('Error:', error);
         document.getElementById('message').textContent =

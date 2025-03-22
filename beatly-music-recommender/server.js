@@ -49,16 +49,18 @@ app.post('/login', async (req, res) => {
     }
 });
 
+
 // Like a Song
 app.post('/user/like', async (req, res) => {
     const { username, songId } = req.body;
     try {
-        await User.likeSong(username, songId);
+        await User.likeSongInDb(username, songId); 
         res.json({ success: true, message: 'Song liked successfully!' });
     } catch (error) {
         res.status(500).json({ error: 'Error liking the song.' });
     }
 });
+
 
 // ---------------------- SONG ROUTES ----------------------
 
@@ -79,6 +81,18 @@ app.get('/songs', async (req, res) => {
         res.status(500).json({ error: 'Error retrieving songs.' });
     }
 });
+
+// BACKEND ROUTE FOR LIKED SONGS
+
+app.get('/user/liked/:username', async (req, res) => {
+    try {
+        const likedSongs = await User.getLikedSongs(req.params.username);
+        res.json(likedSongs);
+    } catch (error) {
+        res.status(500).json({ error: 'Error getting liked songs.' });
+    }
+});
+
 
 // Find Song by Genre
 app.get('/database/songs/genre/:genre', async (req, res) => {
