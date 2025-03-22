@@ -50,7 +50,7 @@ class User {
         }
     
         // Add new user to the database
-        const newUser = { username, password };
+        const newUser = { username, password, likedSongs: [], playlists: [] };
         users.push(newUser);
     
         try {
@@ -102,7 +102,31 @@ class User {
     
         const songs = JSON.parse(await fs.readFile(path.join(__dirname, '../../database/songs.json')));
         return songs.filter(song => user.likedSongs.includes(song.title));
-    }    
+    }
+    
+    static async createPlaylist(username, name) {
+        const users = await readDatabase();
+        const user = users.find(u => u.username === username);
+        if (!user) throw new Error('User not found');
+    
+        if (!user.playlists) user.playlists = [];
+    
+        // Check if playlist already exists
+        if (user.playlists.some(p => p.name === name)) {
+            throw new Error('Playlist already exists');
+        }
+    
+        const newPlaylist = {
+            id: name, // using name as ID for simplicity
+            name,
+            songs: []
+        };
+    
+        user.playlists.push(newPlaylist);
+        await fs.writeFile(dbPath, JSON.stringify(users, null, 2));
+        return newPlaylist;
+    }
+    
 }
 
 

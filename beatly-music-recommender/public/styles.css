@@ -167,3 +167,20 @@ input[type="text"], input[type="password"] {
     color: #ff0000;
     font-size: 0.9rem;
 }
+
+/* homepage styles */
+.song-list {
+    list-style: none;
+    padding: 0;
+}
+
+.song-list li {
+    background-color: #f0f0f0;
+    margin-bottom: 5px;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
