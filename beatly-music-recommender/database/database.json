@@ -5,6 +5,13 @@
     "likedSongs": [
       "Bohemian Rhapsody",
       "Hotel California"
+    ],
+    "playlists": [
+      {
+        "id": "test",
+        "name": "test",
+        "songs": []
+      }
     ]
   },
   {
