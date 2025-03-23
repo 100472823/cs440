@@ -3,13 +3,22 @@
     "username": "admin",
     "password": "1234",
     "likedSongs": [
-      "Bohemian Rhapsody",
       "Hotel California"
     ],
     "playlists": [
       {
         "id": "test",
         "name": "test",
+        "songs": []
+      },
+      {
+        "id": "test1",
+        "name": "test1",
+        "songs": []
+      },
+      {
+        "id": "yo",
+        "name": "yo",
         "songs": []
       }
     ]

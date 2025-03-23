@@ -38,10 +38,10 @@ class User {
     }
 
     static async register(username, password) {
-        console.log("📝 Attempting to register user:", username); // Debugging step
+        console.log(" Attempting to register user:", username); // Debugging step
     
         const users = await readDatabase(); // Read existing users
-        console.log("📜 Current database users:", users); // Debugging step
+        console.log(" Current database users:", users); // Debugging step
     
         // Check if user already exists
         if (users.some(user => user.username === username)) {
@@ -103,6 +103,16 @@ class User {
         const songs = JSON.parse(await fs.readFile(path.join(__dirname, '../../database/songs.json')));
         return songs.filter(song => user.likedSongs.includes(song.title));
     }
+
+    static async unlikeSong(username, songTitle) {
+        const users = await readDatabase();
+        const user = users.find(u => u.username === username);
+        if (!user) throw new Error('User not found');
+      
+        user.likedSongs = user.likedSongs.filter(title => title !== songTitle);
+        await fs.writeFile(dbPath, JSON.stringify(users, null, 2));
+      }
+      
     
     static async createPlaylist(username, name) {
         const users = await readDatabase();
@@ -146,4 +156,8 @@ async function readDatabase() {
     }
 }
 
-module.exports = User;
+module.exports = {
+    User,
+    readDatabase
+  };
+  

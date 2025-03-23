@@ -7,6 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const allSongsList = document.getElementById('all-songs');
     const likedSongsList = document.getElementById('liked-songs');
     const recommendedSongsList = document.getElementById('recommended-songs');
+
+    fetch(`/playlist/user/${username}`)
+    .then(res => res.json())
+    .then(playlists => {
+      console.log("✅ Loaded playlists:", playlists); // Debug log
+      playlists.forEach(playlist => {
+        addPlaylistToList(playlist.name); // ✅ this triggers rendering
+      });
+    })
+    .catch(err => console.error("Error loading playlists:", err));
   
     // Load all songs
     fetch('/songs')
@@ -59,14 +69,28 @@ document.addEventListener('DOMContentLoaded', () => {
   
     // Load liked songs
     fetch(`/user/liked/${username}`)
-      .then(res => res.json())
-      .then(songs => {
-        songs.forEach(song => {
-          const li = document.createElement('li');
-          li.textContent = `${song.title} - ${song.artist}`;
-          likedSongsList.appendChild(li);
+    .then(res => res.json())
+    .then(songs => {
+    songs.forEach(song => {
+      const li = document.createElement('li');
+      li.innerHTML = `${song.title} - ${song.artist} <button style="margin-left:10px;">🗑️</button>`;
+
+      li.querySelector('button').addEventListener('click', () => {
+        fetch('/user/unlike', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, songId: song.title })
+        })
+        .then(res => res.json())
+        .then(() => {
+          li.remove(); // Remove from UI
         });
       });
+
+      likedSongsList.appendChild(li);
+    });
+  });
+
   
     // Load recommendations
     fetch(`/recommendations/${username}`)
@@ -78,6 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
           recommendedSongsList.appendChild(li);
         });
       });
+
+      
+
+
   });
   
   function toggleCreatePlaylistForm() {
@@ -117,7 +145,58 @@ document.addEventListener('DOMContentLoaded', () => {
   
   function addPlaylistToList(name) {
     const li = document.createElement('li');
-    li.textContent = name;
+    li.innerHTML = `<strong>${name}</strong> <button>Show Songs</button>`;
+  
+    const songList = document.createElement('ul');
+    songList.style.display = 'none';
+    songList.style.marginTop = '10px';
+  
+    const toggleBtn = li.querySelector('button');
+    toggleBtn.addEventListener('click', () => {
+      const username = localStorage.getItem('loggedInUser');
+      if (songList.style.display === 'none') {
+        // Load songs from backend
+        fetch(`/playlist/${username}/${name}`)
+          .then(res => res.json())
+          .then(songs => {
+            songList.innerHTML = '';
+            songs.forEach(song => {
+              const songItem = document.createElement('li');
+              songItem.innerHTML = `
+                ${song.title} - ${song.artist}
+                <button style="margin-left:10px;">🗑️</button>
+              `;
+  
+              songItem.querySelector('button').addEventListener('click', () => {
+                fetch('/playlist/remove', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    username,
+                    playlistId: name,
+                    songId: song.title
+                  })
+                })
+                .then(res => res.json())
+                .then(() => {
+                  songItem.remove(); // Remove from view
+                });
+              });
+  
+              songList.appendChild(songItem);
+            });
+  
+            songList.style.display = 'block';
+            toggleBtn.textContent = 'Hide Songs';
+          });
+      } else {
+        songList.style.display = 'none';
+        toggleBtn.textContent = 'Show Songs';
+      }
+    });
+  
+    li.appendChild(songList);
     document.getElementById('user-playlists').appendChild(li);
   }
+  
   
