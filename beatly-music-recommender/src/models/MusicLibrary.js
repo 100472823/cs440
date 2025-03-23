@@ -11,7 +11,7 @@ class MusicLibrary {
 
     async loadSongs() {
         try {
-            console.log("📂 Reading songs from:", songsDbPath);
+            console.log(" Reading songs from:", songsDbPath);
             const data = await fs.readFile(songsDbPath, 'utf8');
 
             if (!data.trim()) {
@@ -47,4 +47,4 @@ class MusicLibrary {
     }
 }
 
-module.exports = new MusicLibrary(); //Export an instance of the class
+module.exports = new MusicLibrary(); 

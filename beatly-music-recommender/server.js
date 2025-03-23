@@ -2,22 +2,26 @@ const express = require('express');
 const app = express();
 const PORT = 5500;
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // Import Models
-const User = require('./src/models/User.js');
+const { User } = require('./src/models/User');
 const MusicLibrary = require('./src/models/MusicLibrary.js');
-const Playlist = require('./src/models/Playlist.js');
+//const Playlist = require('./src/models/Playlist.js');
 const RecommenderEngine = require('./src/models/RecommendationEngine.js');
+const playlistRoutes = require('./src/routes/playlistRoutes');
 
 
 
+app.use('/playlist', playlistRoutes);
 
 app.use(express.static(__dirname + '/public'));
 
 app.use('/client', express.static(__dirname + '/client'));
 
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
 
 // ---------------------- USER ROUTES ----------------------
 
@@ -49,16 +53,18 @@ app.post('/login', async (req, res) => {
     }
 });
 
+
 // Like a Song
 app.post('/user/like', async (req, res) => {
     const { username, songId } = req.body;
     try {
-        await User.likeSong(username, songId);
+        await User.likeSongInDb(username, songId); 
         res.json({ success: true, message: 'Song liked successfully!' });
     } catch (error) {
         res.status(500).json({ error: 'Error liking the song.' });
     }
 });
+
 
 // ---------------------- SONG ROUTES ----------------------
 
@@ -80,6 +86,30 @@ app.get('/songs', async (req, res) => {
     }
 });
 
+// BACKEND ROUTE FOR LIKED SONGS
+
+
+app.get('/user/liked/:username', async (req, res) => {
+    try {
+        const likedSongs = await User.getLikedSongs(req.params.username);
+        res.json(likedSongs);
+    } catch (error) {
+        res.status(500).json({ error: 'Error getting liked songs.' });
+    }
+});
+
+app.post('/user/unlike', async (req, res) => {
+    const { username, songId } = req.body;
+    try {
+      await User.unlikeSong(username, songId);
+      res.json({ success: true, message: 'Song unliked successfully!' });
+    } catch (error) {
+      res.status(500).json({ error: 'Error unliking the song.' });
+    }
+  });
+  
+
+
 // Find Song by Genre
 app.get('/database/songs/genre/:genre', async (req, res) => {
     try {
@@ -100,50 +130,6 @@ app.get('/database/songs/artist/:artist', async (req, res) => {
     }
 });
 
-// ---------------------- PLAYLIST ROUTES ----------------------
-
-// Create Playlist
-app.post('/playlist/create', async (req, res) => {
-    const { username, name } = req.body;
-    try {
-        const newPlaylist = await User.createPlaylist(username, name);
-        res.json({ success: true, playlist: newPlaylist });
-    } catch (error) {
-        res.status(500).json({ error: 'Error creating playlist.' });
-    }
-});
-
-// Add Song to Playlist
-app.post('/playlist/add', async (req, res) => {
-    const { username, playlistId, songId } = req.body;
-    try {
-        const updatedPlaylist = await Playlist.addSong(username, playlistId, songId);
-        res.json({ success: true, playlist: updatedPlaylist });
-    } catch (error) {
-        res.status(500).json({ error: 'Error adding song to playlist.' });
-    }
-});
-
-// Remove Song from Playlist
-app.post('/playlist/remove', async (req, res) => {
-    const { username, playlistId, songId } = req.body;
-    try {
-        const updatedPlaylist = await Playlist.removeSong(username, playlistId, songId);
-        res.json({ success: true, playlist: updatedPlaylist });
-    } catch (error) {
-        res.status(500).json({ error: 'Error removing song from playlist.' });
-    }
-});
-
-// Shuffle Playlist
-app.get('/playlist/shuffle/:playlistId', async (req, res) => {
-    try {
-        const shuffledPlaylist = await Playlist.shuffle(req.params.playlistId);
-        res.json(shuffledPlaylist);
-    } catch (error) {
-        res.status(500).json({ error: 'Error shuffling playlist.' });
-    }
-});
 
 // ---------------------- RECOMMENDATION ROUTES ----------------------
 

@@ -16,11 +16,22 @@ class User {
         this.playlists = []; // Array of Playlist objects
     }
 
-    createPlaylist(name) {
-        const playlist = new Playlist(this.playlists.length + 1, name, this);
-        this.playlists.push(playlist);
-        return playlist;
-    }
+    static async createPlaylist(username, name) {
+        const users = await this.readDatabase();
+        const user = users.find(u => u.username === username);
+        if (!user) throw new Error("User not found");
+      
+        if (!user.playlists) user.playlists = [];
+      
+        const existing = user.playlists.find(p => p.name === name);
+        if (existing) throw new Error("Playlist already exists");
+      
+        const newPlaylist = { id: name, name, songs: [] };
+        user.playlists.push(newPlaylist);
+        await this.writeDatabase(users);
+        return newPlaylist;
+      }
+      
 
     likeSong(song) {
         if (!this.likedSongs.find(s => s.id === song.id)) {
@@ -38,10 +49,10 @@ class User {
     }
 
     static async register(username, password) {
-        console.log("📝 Attempting to register user:", username); // Debugging step
+        console.log(" Attempting to register user:", username); // Debugging step
     
         const users = await readDatabase(); // Read existing users
-        console.log("📜 Current database users:", users); // Debugging step
+        console.log(" Current database users:", users); // Debugging step
     
         // Check if user already exists
         if (users.some(user => user.username === username)) {
@@ -50,7 +61,7 @@ class User {
         }
     
         // Add new user to the database
-        const newUser = { username, password };
+        const newUser = { username, password, likedSongs: [], playlists: [] };
         users.push(newUser);
     
         try {
@@ -80,7 +91,66 @@ class User {
         console.log("User NOT found in database:", username);
         return false;
     }
+
+    static async likeSongInDb(username, songTitle) {
+        const users = await readDatabase();
+        const user = users.find(u => u.username === username);
+    
+        if (!user) throw new Error('User not found');
+    
+        if (!user.likedSongs) user.likedSongs = [];
+    
+        if (!user.likedSongs.includes(songTitle)) {
+            user.likedSongs.push(songTitle);
+            await fs.writeFile(dbPath, JSON.stringify(users, null, 2));
+        }
+    }
+    
+    static async getLikedSongs(username) {
+        const users = await readDatabase();
+        const user = users.find(u => u.username === username);
+        if (!user || !user.likedSongs) return [];
+    
+        const songs = JSON.parse(await fs.readFile(path.join(__dirname, '../../database/songs.json')));
+        return songs.filter(song => user.likedSongs.includes(song.title));
+    }
+
+    static async unlikeSong(username, songTitle) {
+        const users = await readDatabase();
+        const user = users.find(u => u.username === username);
+        if (!user) throw new Error('User not found');
+      
+        user.likedSongs = user.likedSongs.filter(title => title !== songTitle);
+        await fs.writeFile(dbPath, JSON.stringify(users, null, 2));
+      }
+      
+    
+    static async createPlaylist(username, name) {
+        const users = await readDatabase();
+        const user = users.find(u => u.username === username);
+        if (!user) throw new Error('User not found');
+    
+        if (!user.playlists) user.playlists = [];
+    
+        // Check if playlist already exists
+        if (user.playlists.some(p => p.name === name)) {
+            throw new Error('Playlist already exists');
+        }
+    
+        const newPlaylist = {
+            id: name, // using name as ID for simplicity
+            name,
+            songs: []
+        };
+    
+        user.playlists.push(newPlaylist);
+        await fs.writeFile(dbPath, JSON.stringify(users, null, 2));
+        return newPlaylist;
+    }
+    
 }
+
+
 
 async function readDatabase() {
     try {
@@ -97,4 +167,8 @@ async function readDatabase() {
     }
 }
 
-module.exports = User;
+module.exports = {
+    User,
+    readDatabase
+  };
+  

@@ -1,7 +1,35 @@
 [
   {
     "username": "admin",
-    "password": "1234"
+    "password": "1234",
+    "likedSongs": [
+      "Hotel California"
+    ],
+    "playlists": [
+      {
+        "id": "test",
+        "name": "test",
+        "songs": [
+          "Like a Rolling Stone",
+          "Smells Like Teen Spirit"
+        ]
+      },
+      {
+        "id": "test1",
+        "name": "test1",
+        "songs": []
+      },
+      {
+        "id": "yo",
+        "name": "yo",
+        "songs": []
+      },
+      {
+        "id": "testtttt",
+        "name": "testtttt",
+        "songs": []
+      }
+    ]
   },
   {
     "username": "user1",
