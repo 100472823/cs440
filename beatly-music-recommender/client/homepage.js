@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
     li.innerHTML = `
       <strong>${name}</strong>
       <button class="toggle-songs-btn">Show Songs</button>
-      <button class="delete-playlist-btn" style="margin-left: 8px;">🗑️ Delete</button>
+      <button class="delete-playlist-btn" style="margin-left: 8px;"> Delete</button>
     `;
   
     const songList = document.createElement('ul');
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const songItem = document.createElement('li');
                 songItem.innerHTML = `
                   ${song.title} - ${song.artist}
-                  <button style="margin-left:10px;">🗑️</button>
+                  <button style="margin-left:10px;">Remove</button>
                 `;
   
                 songItem.querySelector('button').addEventListener('click', () => {

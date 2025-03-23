@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Playlist = require('../models/Playlist');
-const User = require('../models/User'); // For createPlaylist
+const { User } = require('../models/User');
+
 
 // Create Playlist
 router.post('/create', async (req, res) => {

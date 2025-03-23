@@ -16,11 +16,22 @@ class User {
         this.playlists = []; // Array of Playlist objects
     }
 
-    createPlaylist(name) {
-        const playlist = new Playlist(this.playlists.length + 1, name, this);
-        this.playlists.push(playlist);
-        return playlist;
-    }
+    static async createPlaylist(username, name) {
+        const users = await this.readDatabase();
+        const user = users.find(u => u.username === username);
+        if (!user) throw new Error("User not found");
+      
+        if (!user.playlists) user.playlists = [];
+      
+        const existing = user.playlists.find(p => p.name === name);
+        if (existing) throw new Error("Playlist already exists");
+      
+        const newPlaylist = { id: name, name, songs: [] };
+        user.playlists.push(newPlaylist);
+        await this.writeDatabase(users);
+        return newPlaylist;
+      }
+      
 
     likeSong(song) {
         if (!this.likedSongs.find(s => s.id === song.id)) {
