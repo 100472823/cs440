@@ -4,59 +4,78 @@
   <meta charset="UTF-8" />
   <title>Music Recommender - Homepage</title>
   <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+
 </head>
 <body>
-  <header>
-    <h1>🎶 Welcome, <span id="username-display"></span>!</h1>
-    <nav>
-      <a href="homepage.html">Home</a>
-      <a href="#" onclick="logout()">Logout</a>
-    </nav>
-  </header>
-
-  <main style="width: 90%; max-width: 900px; margin: 20px auto;">
-    <section class="card" style="margin-bottom: 20px;">
-      <h2>❤️ Your Liked Songs</h2>
-      <ul id="liked-songs" class="song-list"></ul>
-    </section>
-
-     <!-- New Playlist Section -->
-     <section class="card" style="margin-bottom: 20px;">
-        <h2>📂 Your Playlists</h2>
+    <section class="hero">
+        <video autoplay muted loop id="bg-video">
+          <source src="background2.mp4" type="video/mp4" />
+        </video>
+        <div class="overlay">
+          <h1>Welcome to Beatly</h1>
+          <p>Your personal music recommender</p>
       
-        <button onclick="toggleCreatePlaylistForm()">➕ Create New Playlist</button>
-      
-        <div id="create-playlist-form" style="display: none; margin-top: 10px;">
-          <input type="text" id="new-playlist-name" placeholder="Playlist name..." />
-          <button onclick="createPlaylist()">Create</button>
+          <!-- Browser UI -->
+          <div class="browser-container">
+            <input type="text" id="song-search" placeholder="Search for songs or artists..." />
+          </div>
         </div>
-      
-        <ul id="user-playlists" class="song-list" style="margin-top: 15px;"></ul>
       </section>
-      
-      
+      <div class="main-container">      
+        <header>
+            <h1>🎶 Welcome, <span id="username-display"></span>!</h1>
+            <nav>
+            <a href="homepage.html">Home</a>
+            <a href="#" onclick="logout()">Logout</a>
+            </nav>
+        </header>
 
-    <section class="card" style="margin-bottom: 20px;">
-      <h2>📈 Recommended for You</h2>
-      <ul id="recommended-songs" class="song-list"></ul>
-    </section>
+        <main style="width: 90%; max-width: 900px; margin: 20px auto;">
+            <section class="card" style="margin-bottom: 20px;">
+            <h2>❤️ Your Liked Songs</h2>
+            <ul id="liked-songs" class="song-list"></ul>
+            </section>
 
-    <section class="card">
-      <h2>🎵 All Songs</h2>
-      <ul id="all-songs" class="song-list"></ul>
-    </section>
-  </main>
+            <!-- New Playlist Section -->
+            <section class="card" style="margin-bottom: 20px;">
+                <h2>📂 Your Playlists</h2>
+            
+                <button onclick="toggleCreatePlaylistForm()">➕ Create New Playlist</button>
+            
+                <div id="create-playlist-form" style="display: none; margin-top: 10px;">
+                <input type="text" id="new-playlist-name" placeholder="Playlist name..." />
+                <button onclick="createPlaylist()">Create</button>
+                </div>
+            
+                <ul id="user-playlists" class="song-list" style="margin-top: 15px;"></ul>
+            </section>
+            
+            
 
-  <footer>
-    <p>&copy; 2025 Music Recommender</p>
-  </footer>
+            <section class="card" style="margin-bottom: 20px;">
+            <h2>📈 Recommended for You</h2>
+            <ul id="recommended-songs" class="song-list"></ul>
+            </section>
 
-  <script>
-    function logout() {
-      localStorage.removeItem('loggedInUser');
-      window.location.href = 'index.html';
-    }
-  </script>
-  <script src="/client/homepage.js"></script>
+            <section class="card">
+            <h2>🎵 All Songs</h2>
+            <ul id="all-songs" class="song-list"></ul>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 Music Recommender</p>
+        </footer>
+
+        <script>
+            function logout() {
+            localStorage.removeItem('loggedInUser');
+            window.location.href = 'index.html';
+            }
+        </script>
+        <script src="/client/homepage.js"></script>
+    </div>
 </body>
 </html>

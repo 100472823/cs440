@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const likedSongsList = document.getElementById('liked-songs');
     const recommendedSongsList = document.getElementById('recommended-songs');
   
-    // Load all playlists on page load
+    // Load all playlists
     fetch(`/playlist/user/${username}`)
       .then(res => res.json())
       .then(playlists => {
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="add-to-playlist-btn">➕ Add to Playlist</button>
           `;
   
-          // Like song
+          // Like button
           li.querySelector('.like-btn').addEventListener('click', () => {
             fetch('/user/like', {
               method: 'POST',
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
               .then(data => alert(data.message));
           });
   
-          // Add to playlist
+          // Add to playlist dropdown
           const playlistBtn = li.querySelector('.add-to-playlist-btn');
           const dropdownContainer = document.createElement('div');
           dropdownContainer.classList.add('playlist-dropdown');
@@ -89,6 +89,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     .then(() => {
                       alert(`Added to "${playlistId}"`);
                       dropdownContainer.style.display = 'none';
+  
+                      // Auto-refresh if the playlist is currently open
+                      const playlistSections = document.querySelectorAll('#user-playlists li');
+                      playlistSections.forEach(section => {
+                        const title = section.querySelector('strong')?.textContent;
+                        if (title === playlistId) {
+                          const toggleBtn = section.querySelector('.toggle-songs-btn');
+                          const songList = section.querySelector('ul');
+                          if (songList && songList.style.display !== 'none') {
+                            toggleBtn.click();
+                            setTimeout(() => toggleBtn.click(), 100);
+                          }
+                        }
+                      });
                     });
                 });
   
@@ -117,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
               .then(res => res.json())
               .then(() => {
-                li.remove(); // Remove from UI
+                li.remove();
               });
           });
   
@@ -137,13 +151,13 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   });
   
-  // Playlist form toggle
+  // Toggle playlist form
   function toggleCreatePlaylistForm() {
     const form = document.getElementById('create-playlist-form');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
   }
   
-  // Create a new playlist
+  // Create a playlist
   function createPlaylist() {
     const username = localStorage.getItem('loggedInUser');
     const playlistName = document.getElementById('new-playlist-name').value.trim();
@@ -174,29 +188,28 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
   
-  // Add playlist to list with song viewer
+  // Add playlist with Show Songs + Delete button
   function addPlaylistToList(name) {
     const li = document.createElement('li');
-    li.innerHTML = `<strong>${name}</strong> <button>Show Songs</button>`;
+    li.innerHTML = `
+      <strong>${name}</strong>
+      <button class="toggle-songs-btn">Show Songs</button>
+      <button class="delete-playlist-btn" style="margin-left: 8px;">🗑️ Delete</button>
+    `;
   
     const songList = document.createElement('ul');
     songList.style.display = 'none';
     songList.style.marginTop = '10px';
   
-    const toggleBtn = li.querySelector('button');
+    // Toggle show/hide songs
+    const toggleBtn = li.querySelector('.toggle-songs-btn');
     toggleBtn.addEventListener('click', () => {
       const username = localStorage.getItem('loggedInUser');
   
-      // toggle open/close
       if (songList.style.display === 'none') {
-        // 🔍 Add logging
-        console.log(`Fetching songs from /playlist/${username}/${name}`);
-  
         fetch(`/playlist/${username}/${name}`)
           .then(res => res.json())
           .then(songs => {
-            console.log('🎵 Songs in playlist:', songs); // debug
-  
             songList.innerHTML = '';
   
             if (!Array.isArray(songs) || songs.length === 0) {
@@ -211,7 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
                   <button style="margin-left:10px;">🗑️</button>
                 `;
   
-                // Remove from playlist
                 songItem.querySelector('button').addEventListener('click', () => {
                   fetch('/playlist/remove', {
                     method: 'POST',
@@ -235,12 +247,31 @@ document.addEventListener('DOMContentLoaded', () => {
             songList.style.display = 'block';
             toggleBtn.textContent = 'Hide Songs';
           })
-          .catch(err => {
-            console.error('❌ Error loading playlist songs:', err);
-          });
+          .catch(err => console.error('Error loading playlist songs:', err));
       } else {
         songList.style.display = 'none';
         toggleBtn.textContent = 'Show Songs';
+      }
+    });
+  
+    // Delete playlist
+    const deleteBtn = li.querySelector('.delete-playlist-btn');
+    deleteBtn.addEventListener('click', () => {
+      if (confirm(`Are you sure you want to delete "${name}"?`)) {
+        fetch('/playlist/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: localStorage.getItem('loggedInUser'), playlistId: name })
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              li.remove();
+              alert(`Deleted "${name}"`);
+            } else {
+              alert(data.error || 'Error deleting playlist.');
+            }
+          });
       }
     });
   

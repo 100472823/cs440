@@ -59,6 +59,28 @@ router.post('/remove', async (req, res) => {
   }
 });
 
+//delete playlist
+router.post('/delete', async (req, res) => {
+    const { username, playlistId } = req.body;
+    try {
+      const users = await require('../models/User').readDatabase();
+      const user = users.find(u => u.username === username);
+      if (!user) throw new Error('User not found');
+  
+      user.playlists = user.playlists.filter(p => p.id !== playlistId && p.name !== playlistId);
+  
+      await fs.writeFile(
+        path.join(__dirname, '../../database/database.json'),
+        JSON.stringify(users, null, 2)
+      );
+  
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: error.message || 'Error deleting playlist.' });
+    }
+  });
+
+  
 // Get Songs from Playlist
 router.get('/:username/:playlistId', async (req, res) => {
   const { username, playlistId } = req.params;
