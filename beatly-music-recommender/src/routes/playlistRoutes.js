@@ -5,14 +5,14 @@ const User = require('../models/User'); // For createPlaylist
 
 // Create Playlist
 router.post('/create', async (req, res) => {
-    console.log("📦 Received in /playlist/create:", req.body); 
+    console.log(" Received in /playlist/create:", req.body); 
   
     const { username, name } = req.body;
     try {
       const newPlaylist = await User.createPlaylist(username, name);
       res.json({ success: true, playlist: newPlaylist });
     } catch (error) {
-      console.error("🚨 Error creating playlist:", error); 
+      console.error(" Error creating playlist:", error); 
       res.status(500).json({ error: error.message || 'Error creating playlist.' });
     }
   });
@@ -38,14 +38,15 @@ router.get('/user/:username', async (req, res) => {
 
 // Add Song to Playlist
 router.post('/add', async (req, res) => {
-  const { username, playlistId, songId } = req.body;
-  try {
-    const updatedPlaylist = await Playlist.addSong(username, playlistId, songId);
-    res.json({ success: true, playlist: updatedPlaylist });
-  } catch (error) {
-    res.status(500).json({ error: error.message || 'Error adding song to playlist.' });
-  }
-});
+    const { username, playlistId, songId } = req.body;
+    try {
+      const updatedPlaylist = await Playlist.addSong(username, playlistId, songId);
+      res.json({ success: true, playlist: updatedPlaylist });
+    } catch (error) {
+      res.status(500).json({ error: error.message || 'Error adding song to playlist.' });
+    }
+  });
+  
 
 // Remove Song from Playlist
 router.post('/remove', async (req, res) => {

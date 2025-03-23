@@ -9,7 +9,10 @@
       {
         "id": "test",
         "name": "test",
-        "songs": []
+        "songs": [
+          "Like a Rolling Stone",
+          "Smells Like Teen Spirit"
+        ]
       },
       {
         "id": "test1",

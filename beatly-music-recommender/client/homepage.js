@@ -7,16 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const allSongsList = document.getElementById('all-songs');
     const likedSongsList = document.getElementById('liked-songs');
     const recommendedSongsList = document.getElementById('recommended-songs');
-
+  
+    // Load all playlists on page load
     fetch(`/playlist/user/${username}`)
-    .then(res => res.json())
-    .then(playlists => {
-      console.log("✅ Loaded playlists:", playlists); // Debug log
-      playlists.forEach(playlist => {
-        addPlaylistToList(playlist.name); // ✅ this triggers rendering
-      });
-    })
-    .catch(err => console.error("Error loading playlists:", err));
+      .then(res => res.json())
+      .then(playlists => {
+        playlists.forEach(playlist => {
+          addPlaylistToList(playlist.name);
+        });
+      })
+      .catch(err => console.error("Error loading playlists:", err));
   
     // Load all songs
     fetch('/songs')
@@ -30,37 +30,71 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="add-to-playlist-btn">➕ Add to Playlist</button>
           `;
   
+          // Like song
           li.querySelector('.like-btn').addEventListener('click', () => {
             fetch('/user/like', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ username, songId: song.title })
             })
-            .then(res => res.json())
-            .then(data => alert(data.message));
+              .then(res => res.json())
+              .then(data => alert(data.message));
           });
   
-          li.querySelector('.add-to-playlist-btn').addEventListener('click', () => {
-            const playlistName = prompt("Enter playlist name:");
-            if (!playlistName) return;
+          // Add to playlist
+          const playlistBtn = li.querySelector('.add-to-playlist-btn');
+          const dropdownContainer = document.createElement('div');
+          dropdownContainer.classList.add('playlist-dropdown');
+          dropdownContainer.style.display = 'none';
+          dropdownContainer.style.marginTop = '8px';
+          li.appendChild(dropdownContainer);
   
-            // Create playlist first (or skip if it exists in the backend)
-            fetch('/playlist/create', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ username, name: playlistName })
-            })
-            .then(res => res.json())
-            .then(() => {
-              // Then add song to playlist
-              fetch('/playlist/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, playlistId: playlistName, songId: song.title })
-              })
+          playlistBtn.addEventListener('click', () => {
+            dropdownContainer.style.display = dropdownContainer.style.display === 'none' ? 'block' : 'none';
+  
+            if (dropdownContainer.innerHTML !== '') return;
+  
+            fetch(`/playlist/user/${username}`)
               .then(res => res.json())
-              .then(data => alert(`Added to "${playlistName}"`));
-            });
+              .then(playlists => {
+                if (playlists.length === 0) {
+                  dropdownContainer.innerHTML = '<p>No playlists found.</p>';
+                  return;
+                }
+  
+                const select = document.createElement('select');
+                playlists.forEach(p => {
+                  const option = document.createElement('option');
+                  option.value = p.name;
+                  option.textContent = p.name;
+                  select.appendChild(option);
+                });
+  
+                const addBtn = document.createElement('button');
+                addBtn.textContent = 'Add';
+                addBtn.style.marginLeft = '10px';
+  
+                addBtn.addEventListener('click', () => {
+                  const playlistId = select.value;
+                  fetch('/playlist/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      username,
+                      playlistId,
+                      songId: song.title
+                    })
+                  })
+                    .then(res => res.json())
+                    .then(() => {
+                      alert(`Added to "${playlistId}"`);
+                      dropdownContainer.style.display = 'none';
+                    });
+                });
+  
+                dropdownContainer.appendChild(select);
+                dropdownContainer.appendChild(addBtn);
+              });
           });
   
           allSongsList.appendChild(li);
@@ -69,28 +103,27 @@ document.addEventListener('DOMContentLoaded', () => {
   
     // Load liked songs
     fetch(`/user/liked/${username}`)
-    .then(res => res.json())
-    .then(songs => {
-    songs.forEach(song => {
-      const li = document.createElement('li');
-      li.innerHTML = `${song.title} - ${song.artist} <button style="margin-left:10px;">🗑️</button>`;
-
-      li.querySelector('button').addEventListener('click', () => {
-        fetch('/user/unlike', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, songId: song.title })
-        })
-        .then(res => res.json())
-        .then(() => {
-          li.remove(); // Remove from UI
+      .then(res => res.json())
+      .then(songs => {
+        songs.forEach(song => {
+          const li = document.createElement('li');
+          li.innerHTML = `${song.title} - ${song.artist} <button style="margin-left:10px;">🗑️</button>`;
+  
+          li.querySelector('button').addEventListener('click', () => {
+            fetch('/user/unlike', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, songId: song.title })
+            })
+              .then(res => res.json())
+              .then(() => {
+                li.remove(); // Remove from UI
+              });
+          });
+  
+          likedSongsList.appendChild(li);
         });
       });
-
-      likedSongsList.appendChild(li);
-    });
-  });
-
   
     // Load recommendations
     fetch(`/recommendations/${username}`)
@@ -102,17 +135,15 @@ document.addEventListener('DOMContentLoaded', () => {
           recommendedSongsList.appendChild(li);
         });
       });
-
-      
-
-
   });
   
+  // Playlist form toggle
   function toggleCreatePlaylistForm() {
     const form = document.getElementById('create-playlist-form');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
   }
   
+  // Create a new playlist
   function createPlaylist() {
     const username = localStorage.getItem('loggedInUser');
     const playlistName = document.getElementById('new-playlist-name').value.trim();
@@ -130,9 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          addPlaylistToList(playlistName); // Add to visible list
+          addPlaylistToList(playlistName);
           document.getElementById('new-playlist-name').value = '';
-          toggleCreatePlaylistForm(); // Hide the form
+          toggleCreatePlaylistForm();
         } else {
           alert(data.message || 'Error creating playlist.');
         }
@@ -143,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
   
+  // Add playlist to list with song viewer
   function addPlaylistToList(name) {
     const li = document.createElement('li');
     li.innerHTML = `<strong>${name}</strong> <button>Show Songs</button>`;
@@ -154,40 +186,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleBtn = li.querySelector('button');
     toggleBtn.addEventListener('click', () => {
       const username = localStorage.getItem('loggedInUser');
+  
+      // toggle open/close
       if (songList.style.display === 'none') {
-        // Load songs from backend
+        // 🔍 Add logging
+        console.log(`Fetching songs from /playlist/${username}/${name}`);
+  
         fetch(`/playlist/${username}/${name}`)
           .then(res => res.json())
           .then(songs => {
+            console.log('🎵 Songs in playlist:', songs); // debug
+  
             songList.innerHTML = '';
-            songs.forEach(song => {
-              const songItem = document.createElement('li');
-              songItem.innerHTML = `
-                ${song.title} - ${song.artist}
-                <button style="margin-left:10px;">🗑️</button>
-              `;
   
-              songItem.querySelector('button').addEventListener('click', () => {
-                fetch('/playlist/remove', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    username,
-                    playlistId: name,
-                    songId: song.title
+            if (!Array.isArray(songs) || songs.length === 0) {
+              const emptyMsg = document.createElement('li');
+              emptyMsg.textContent = 'No songs in this playlist.';
+              songList.appendChild(emptyMsg);
+            } else {
+              songs.forEach(song => {
+                const songItem = document.createElement('li');
+                songItem.innerHTML = `
+                  ${song.title} - ${song.artist}
+                  <button style="margin-left:10px;">🗑️</button>
+                `;
+  
+                // Remove from playlist
+                songItem.querySelector('button').addEventListener('click', () => {
+                  fetch('/playlist/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      username,
+                      playlistId: name,
+                      songId: song.title
+                    })
                   })
-                })
-                .then(res => res.json())
-                .then(() => {
-                  songItem.remove(); // Remove from view
+                    .then(res => res.json())
+                    .then(() => {
+                      songItem.remove();
+                    });
                 });
-              });
   
-              songList.appendChild(songItem);
-            });
+                songList.appendChild(songItem);
+              });
+            }
   
             songList.style.display = 'block';
             toggleBtn.textContent = 'Hide Songs';
+          })
+          .catch(err => {
+            console.error('❌ Error loading playlist songs:', err);
           });
       } else {
         songList.style.display = 'none';
@@ -198,5 +247,4 @@ document.addEventListener('DOMContentLoaded', () => {
     li.appendChild(songList);
     document.getElementById('user-playlists').appendChild(li);
   }
-  
   
