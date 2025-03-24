@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Beatly - Inicio</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Beatly</h1>
+    <nav>
+      <a href="signup.html">Registrarse</a>
+      <a href="login.html">Iniciar sesión</a>
+    </nav>
+  </header>
+  
+  <section id="music-section">
+    <h2>Catálogo de Canciones</h2>
+    <!-- Se mostrarán aquí las canciones devueltas por /music/songs -->
+    <ul id="song-list"></ul>
+  </section>
+
+  <!-- Carga el script que hará el fetch a /music/songs -->
+  <script>
+    // EJEMPLO simple embebido:
+    fetch("/music/songs")   // <-- RUTA al Music Service a través del gateway
+      .then(response => response.json())
+      .then(songs => {
+        const songList = document.getElementById("song-list");
+        songs.forEach(song => {
+          const li = document.createElement("li");
+          li.textContent = `${song.title} - ${song.artist} [${song.genre}]`;
+          songList.appendChild(li);
+        });
+      })
+      .catch(err => console.error("Error al obtener canciones:", err));
+  </script>
+
+</body>
+</html>

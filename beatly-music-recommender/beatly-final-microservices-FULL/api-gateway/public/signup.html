@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Beatly - Registro</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h2>Crear Cuenta</h2>
+  
+  <form id="signupForm">
+    <label for="username">Usuario:</label>
+    <input type="text" id="username" required />
+
+    <label for="password">Contraseña:</label>
+    <input type="password" id="password" required />
+
+    <button type="submit">Registrarse</button>
+    <p id="message"></p>
+  </form>
+
+  <script>
+    const signupForm = document.getElementById("signupForm");
+    const messageP = document.getElementById("message");
+
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const response = await fetch("/users/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          messageP.textContent = "¡Usuario registrado con éxito!";
+          // Opcional: redirigir a login
+          // window.location.href = "login.html";
+        } else {
+          messageP.textContent = data.message || "Error en el registro";
+        }
+      } catch (err) {
+        console.error("Error al registrar:", err);
+        messageP.textContent = "Error en la conexión";
+      }
+    });
+  </script>
+</body>
+</html>

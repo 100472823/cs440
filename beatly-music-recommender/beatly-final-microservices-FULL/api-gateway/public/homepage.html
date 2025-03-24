@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Beatly - Mi Página</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>¡Bienvenido, <span id="username-display"></span>!</h1>
+    <nav>
+      <a href="#" id="logout-link">Cerrar Sesión</a>
+    </nav>
+  </header>
+
+  <main style="width: 90%; max-width: 900px; margin: 20px auto;">
+    <!-- Sección de canciones favoritas -->
+    <section class="card">
+      <h2>❤️ Tus canciones favoritas</h2>
+      <ul id="liked-songs" class="song-list"></ul>
+    </section>
+
+    <!-- Sección de recomendaciones -->
+    <section class="card">
+      <h2>⭐ Recomendaciones</h2>
+      <ul id="recommended-songs" class="song-list"></ul>
+    </section>
+
+    <!-- Sección de todas las canciones -->
+    <section class="card">
+      <h2>🎵 Todas las canciones</h2>
+      <ul id="all-songs" class="song-list"></ul>
+    </section>
+  </main>
+
+  <script>
+    const usernameDisplay = document.getElementById("username-display");
+    const logoutLink = document.getElementById("logout-link");
+    const likedSongsList = document.getElementById("liked-songs");
+    const recommendedSongsList = document.getElementById("recommended-songs");
+    const allSongsList = document.getElementById("all-songs");
+
+    // 1) Verificar si hay usuario logueado en localStorage
+    const loggedInUser = localStorage.getItem("loggedInUser");
+    if (!loggedInUser) {
+      // Si no hay usuario, redirigir a login
+      window.location.href = "login.html";
+    } else {
+      usernameDisplay.textContent = loggedInUser;
+      loadUserData(loggedInUser);
+    }
+
+    // 2) Evento de logout
+    logoutLink.addEventListener("click", () => {
+      localStorage.removeItem("loggedInUser");
+      window.location.href = "login.html";
+    });
+
+    // Función para cargar datos del usuario
+    async function loadUserData(username) {
+      try {
+        // A) Canciones favoritas => /users/:username/liked
+        const likedRes = await fetch(`/users/${username}/liked`);
+        const likedSongs = await likedRes.json();
+        renderSongList(likedSongs, likedSongsList);
+
+        // B) Recomendaciones => /recommendations/:username
+        const recRes = await fetch(`/recommendations/${username}`);
+        const recData = await recRes.json();
+        // Suponiendo que devuelves { recommendedSongs: [...], user: "..." } 
+        // en tu recommendation-service. Ajusta según tu API real.
+        renderSongList(recData.recommendedSongs || [], recommendedSongsList);
+
+        // C) Todas las canciones => /music/songs
+        const allSongsRes = await fetch("/music/songs");
+        const allSongs = await allSongsRes.json();
+        renderSongList(allSongs, allSongsList);
+
+      } catch (error) {
+        console.error("Error al cargar datos del usuario:", error);
+      }
+    }
+
+    function renderSongList(songs, containerUl) {
+      containerUl.innerHTML = "";
+      songs.forEach(song => {
+        const li = document.createElement("li");
+        if (song.title && song.artist) {
+          li.textContent = `${song.title} - ${song.artist} [${song.genre}]`;
+        } else {
+          // Si tus recomendaciones devuelven un string en vez de un objeto, ajusta aquí
+          li.textContent = JSON.stringify(song);
+        }
+        containerUl.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>

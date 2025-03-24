@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "3000:3000"
+    depends_on:
+      - user-service
+      - music-service
+      - recommendation-service
+    networks:
+      - mynetwork
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    expose:
+      - "3001"
+    networks:
+      - mynetwork
+
+  music-service:
+    build: ./music-service
+    container_name: music-service
+    expose:
+      - "3002"
+    networks:
+      - mynetwork
+
+  recommendation-service:
+    build: ./recommendation-service
+    container_name: recommendation-service
+    expose:
+      - "3003"
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
