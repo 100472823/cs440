@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 services:
   api-gateway:
     build: ./api-gateway
@@ -10,7 +10,7 @@ services:
       - music-service
       - recommendation-service
     networks:
-      - mynetwork
+      - beatly-network
 
   user-service:
     build: ./user-service
@@ -18,7 +18,7 @@ services:
     expose:
       - "3001"
     networks:
-      - mynetwork
+      - beatly-network
 
   music-service:
     build: ./music-service
@@ -26,7 +26,7 @@ services:
     expose:
       - "3002"
     networks:
-      - mynetwork
+      - beatly-network
 
   recommendation-service:
     build: ./recommendation-service
@@ -34,8 +34,8 @@ services:
     expose:
       - "3003"
     networks:
-      - mynetwork
+      - beatly-network
 
 networks:
-  mynetwork:
+  beatly-network:
     driver: bridge

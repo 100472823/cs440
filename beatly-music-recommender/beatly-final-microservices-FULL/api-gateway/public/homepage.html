@@ -21,17 +21,17 @@
     </div>
   </section>
 
-  <div class="main-container">
+  <div class="main-container">      
     <header>
-      <h1>🎶 Welcome, <span id="username-display"></span>!</h1>
-      <nav>
-        <a href="homepage.html">Home</a>
-        <a href="#" onclick="logout()">Logout</a>
-      </nav>
+        <h1>🎶 Welcome, <span id="username-display"></span>!</h1>
+        <nav>
+          <a href="homepage.html">Home</a>
+          <a href="#" onclick="logout()">Logout</a>
+        </nav>
     </header>
 
     <main style="width: 90%; max-width: 900px; margin: 20px auto;">
-
+      
       <!-- Liked Songs -->
       <section class="card" style="margin-bottom: 20px;">
         <h2>❤️ Your Liked Songs</h2>
@@ -42,13 +42,15 @@
       <section class="card" style="margin-bottom: 20px;">
         <h2>📂 Your Playlists</h2>
         <button onclick="toggleCreatePlaylistForm()">➕ Create New Playlist</button>
+        
         <div id="create-playlist-form" style="display: none; margin-top: 10px;">
           <input type="text" id="new-playlist-name" placeholder="Playlist name..." />
           <button onclick="createPlaylist()">Create</button>
         </div>
+        
         <ul id="user-playlists" class="song-list" style="margin-top: 15px;"></ul>
       </section>
-
+      
       <!-- Recommendations -->
       <section class="card" style="margin-bottom: 20px;">
         <h2>Recommended for You</h2>
@@ -67,137 +69,361 @@
     </footer>
   </div>
 
-  <!-- SCRIPT: Lógica de homepage -->
+  <!-- Inline script that replaces your old homepage.js + playlist.js -->
   <script>
-    // Check if user is logged in
-    const loggedInUser = localStorage.getItem('loggedInUser');
+    /*******************************************************
+     * 1) Check if user is logged in
+     *******************************************************/
+    const loggedInUser = localStorage.getItem("loggedInUser");
     if (!loggedInUser) {
-      // If not logged, redirect to index (or login)
-      window.location.href = 'login.html';
+      window.location.href = "login.html"; // or index.html
     }
-
-    // Display username
-    const usernameDisplay = document.getElementById('username-display');
-    usernameDisplay.textContent = loggedInUser;
+    document.getElementById("username-display").textContent = loggedInUser;
 
     // Logout function
     function logout() {
-      localStorage.removeItem('loggedInUser');
-      window.location.href = 'index.html';
+      localStorage.removeItem("loggedInUser");
+      window.location.href = "index.html";
     }
 
-    // ---- PLAYLISTS: toggle create form ----
+    /*******************************************************
+     * 2) DOM references
+     *******************************************************/
+    const allSongsList = document.getElementById("all-songs");
+    const likedSongsList = document.getElementById("liked-songs");
+    const recommendedSongsList = document.getElementById("recommended-songs");
+    const userPlaylistsContainer = document.getElementById("user-playlists");
+
+    /*******************************************************
+     * 3) Playlist form toggle
+     *******************************************************/
     function toggleCreatePlaylistForm() {
-      const form = document.getElementById('create-playlist-form');
-      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+      const form = document.getElementById("create-playlist-form");
+      form.style.display = (form.style.display === "none") ? "block" : "none";
     }
 
-    // ---- PLAYLISTS: create new playlist (example) ----
+    /*******************************************************
+     * 4) Create a new Playlist
+     *    POST /users/:username/playlists
+     *******************************************************/
     async function createPlaylist() {
-      const playlistName = document.getElementById('new-playlist-name').value.trim();
-      if (!playlistName) return alert("Please enter a playlist name!");
+      const playlistName = document
+        .getElementById("new-playlist-name")
+        .value
+        .trim();
+      if (!playlistName) {
+        alert("Please enter a playlist name.");
+        return;
+      }
 
       try {
-        const res = await fetch(`/users/${loggedInUser}/playlists`, {
+        const response = await fetch(`/users/${loggedInUser}/playlists`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ playlistName })
+          body: JSON.stringify({ name: playlistName })
+        });
+        const data = await response.json();
+        if (response.ok && data.success) {
+          document.getElementById("new-playlist-name").value = "";
+          toggleCreatePlaylistForm();
+          addPlaylistToList(playlistName);
+        } else {
+          alert(data.message || "Error creating playlist.");
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Server error creating playlist.");
+      }
+    }
+
+    /*******************************************************
+     * 5) On page load -> load all data
+     *******************************************************/
+    document.addEventListener("DOMContentLoaded", () => {
+      loadUserPlaylists();
+      loadAllSongs();
+      loadLikedSongs();
+      loadRecommendations();
+    });
+
+    /*******************************************************
+     * 6) Load all user's playlists
+     *    GET /users/:username/playlists
+     *******************************************************/
+    async function loadUserPlaylists() {
+      try {
+        const res = await fetch(`/users/${loggedInUser}/playlists`);
+        const playlists = await res.json();
+        userPlaylistsContainer.innerHTML = "";
+        playlists.forEach((p) => {
+          addPlaylistToList(p.name);
+        });
+      } catch (err) {
+        console.error("Error loading playlists:", err);
+      }
+    }
+
+    /*******************************************************
+     * 7) Render a single playlist in the <ul id="user-playlists">
+     *******************************************************/
+    function addPlaylistToList(playlistName) {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <strong>${playlistName}</strong>
+        <button class="toggle-songs-btn">Show Songs</button>
+        <button class="delete-playlist-btn" style="margin-left: 8px;">Delete</button>
+      `;
+      const songList = document.createElement("ul");
+      songList.style.display = "none";
+      songList.style.marginTop = "10px";
+      li.appendChild(songList);
+
+      // "Show Songs" button -> GET /users/:username/playlists/:playlistName
+      const toggleBtn = li.querySelector(".toggle-songs-btn");
+      toggleBtn.addEventListener("click", async () => {
+        if (songList.style.display === "none") {
+          try {
+            const res = await fetch(`/users/${loggedInUser}/playlists/${playlistName}`);
+            const songs = await res.json();
+            songList.innerHTML = "";
+            if (!Array.isArray(songs) || songs.length === 0) {
+              const emptyMsg = document.createElement("li");
+              emptyMsg.textContent = "No songs in this playlist.";
+              songList.appendChild(emptyMsg);
+            } else {
+              songs.forEach((s) => {
+                const songItem = document.createElement("li");
+                songItem.innerHTML = `
+                  ${s.title} - ${s.artist}
+                  <button style="margin-left:10px;">Remove</button>
+                `;
+                // Remove button -> DELETE /users/:username/playlists/:playlistName/songs
+                songItem.querySelector("button").addEventListener("click", async () => {
+                  try {
+                    const removeRes = await fetch(`/users/${loggedInUser}/playlists/${playlistName}/songs`, {
+                      method: "DELETE",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ songId: s.title })
+                    });
+                    if (removeRes.ok) {
+                      songItem.remove();
+                    } else {
+                      alert("Error removing song");
+                    }
+                  } catch (err) {
+                    console.error("Error removing song:", err);
+                  }
+                });
+                songList.appendChild(songItem);
+              });
+            }
+            songList.style.display = "block";
+            toggleBtn.textContent = "Hide Songs";
+          } catch (err) {
+            console.error("Error loading playlist songs:", err);
+          }
+        } else {
+          songList.style.display = "none";
+          toggleBtn.textContent = "Show Songs";
+        }
+      });
+
+      // Delete playlist -> DELETE /users/:username/playlists/:playlistName
+      const deleteBtn = li.querySelector(".delete-playlist-btn");
+      deleteBtn.addEventListener("click", async () => {
+        if (!confirm(`Are you sure you want to delete "${playlistName}"?`)) return;
+        try {
+          const res = await fetch(`/users/${loggedInUser}/playlists/${playlistName}`, {
+            method: "DELETE"
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            li.remove();
+            alert(`Deleted "${playlistName}"`);
+          } else {
+            alert(data.error || "Error deleting playlist.");
+          }
+        } catch (err) {
+          console.error("Error deleting playlist:", err);
+        }
+      });
+
+      userPlaylistsContainer.appendChild(li);
+    }
+
+    /*******************************************************
+     * 8) Load all songs (Music Service)
+     *    GET /music/songs
+     *******************************************************/
+    async function loadAllSongs() {
+      try {
+        const res = await fetch("/music/songs");
+        const songs = await res.json();
+        songs.forEach((song) => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            ${song.title} - ${song.artist} (${song.genre})
+            <button class="like-btn">❤️ Like</button>
+            <button class="add-to-playlist-btn">➕ Add to Playlist</button>
+          `;
+          // Like
+          li.querySelector(".like-btn").addEventListener("click", () => likeSong(song.title));
+          // Add to playlist
+          li.querySelector(".add-to-playlist-btn").addEventListener("click", () => showPlaylistDropdown(li, song));
+          allSongsList.appendChild(li);
+        });
+      } catch (error) {
+        console.error("Error loading all songs:", error);
+      }
+    }
+
+    /*******************************************************
+     * 9) Like a song
+     *    POST /users/like { username, songId }
+     *******************************************************/
+    async function likeSong(songTitle) {
+      try {
+        const res = await fetch("/users/like", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: loggedInUser, songId: songTitle })
         });
         const data = await res.json();
         if (res.ok) {
-          alert("Playlist created!");
-          // Clear input
-          document.getElementById('new-playlist-name').value = '';
-          toggleCreatePlaylistForm();
-          // Reload the playlists
-          loadUserPlaylists();
+          alert(data.message || "Song liked!");
         } else {
-          alert(data.message || "Error creating playlist");
+          alert("Error liking song");
         }
-      } catch (error) {
-        console.error("Error creating playlist:", error);
+      } catch (err) {
+        console.error("Error liking song:", err);
       }
     }
 
-    // ---- Load user data on page load ----
-    window.addEventListener('DOMContentLoaded', () => {
-      loadLikedSongs();
-      loadRecommendedSongs();
-      loadAllSongs();
-      loadUserPlaylists();
-    });
+    /*******************************************************
+     * 10) Show a dropdown of user’s playlists to add a song
+     *     POST /users/:username/playlists/:playlistName/songs
+     *******************************************************/
+    async function showPlaylistDropdown(parentLi, song) {
+      // Create a simple dropdown below the button
+      let dropdownContainer = parentLi.querySelector(".playlist-dropdown");
+      if (!dropdownContainer) {
+        dropdownContainer = document.createElement("div");
+        dropdownContainer.classList.add("playlist-dropdown");
+        dropdownContainer.style.display = "none";
+        dropdownContainer.style.marginTop = "8px";
+        parentLi.appendChild(dropdownContainer);
+      }
+      dropdownContainer.style.display =
+        dropdownContainer.style.display === "none" ? "block" : "none";
 
-    // ---- Liked Songs ----
+      if (dropdownContainer.innerHTML !== "") return; // Already populated
+
+      // Fetch current user playlists
+      try {
+        const res = await fetch(`/users/${loggedInUser}/playlists`);
+        const playlists = await res.json();
+        if (!Array.isArray(playlists) || playlists.length === 0) {
+          dropdownContainer.innerHTML = "<p>No playlists found.</p>";
+          return;
+        }
+        const select = document.createElement("select");
+        playlists.forEach((p) => {
+          const option = document.createElement("option");
+          option.value = p.name;
+          option.textContent = p.name;
+          select.appendChild(option);
+        });
+
+        const addBtn = document.createElement("button");
+        addBtn.textContent = "Add";
+        addBtn.style.marginLeft = "10px";
+
+        addBtn.addEventListener("click", async () => {
+          const chosenPlaylist = select.value;
+          try {
+            const addRes = await fetch(`/users/${loggedInUser}/playlists/${chosenPlaylist}/songs`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ songId: song.title })
+            });
+            if (addRes.ok) {
+              alert(`Added "${song.title}" to "${chosenPlaylist}"`);
+              dropdownContainer.style.display = "none";
+              dropdownContainer.innerHTML = "";
+            } else {
+              alert("Error adding song to playlist");
+            }
+          } catch (err) {
+            console.error("Error adding to playlist:", err);
+          }
+        });
+
+        dropdownContainer.appendChild(select);
+        dropdownContainer.appendChild(addBtn);
+      } catch (err) {
+        console.error("Error loading user playlists for dropdown:", err);
+      }
+    }
+
+    /*******************************************************
+     * 11) Load Liked Songs
+     *     GET /users/:username/liked
+     *******************************************************/
     async function loadLikedSongs() {
       try {
-        const response = await fetch(`/users/${loggedInUser}/liked`);
-        const likedSongs = await response.json();
-        renderSongList(likedSongs, 'liked-songs');
-      } catch (error) {
-        console.error("Error fetching liked songs:", error);
-      }
-    }
-
-    // ---- Recommended Songs ----
-    async function loadRecommendedSongs() {
-      try {
-        const response = await fetch(`/recommendations/${loggedInUser}`);
-        const recData = await response.json();
-        // Si tu recommendation-service retorna { recommendedSongs: [...], user: "..." }
-        const songs = recData.recommendedSongs || recData;
-        renderSongList(songs, 'recommended-songs');
-      } catch (error) {
-        console.error("Error fetching recommended songs:", error);
-      }
-    }
-
-    // ---- All Songs (Music Service) ----
-    async function loadAllSongs() {
-      try {
-        const response = await fetch("/music/songs");
-        const allSongs = await response.json();
-        renderSongList(allSongs, 'all-songs');
-      } catch (error) {
-        console.error("Error fetching all songs:", error);
-      }
-    }
-
-    // ---- User Playlists (optional) ----
-    async function loadUserPlaylists() {
-      try {
-        // Suponiendo que tu user-service tenga un GET /users/:username/playlists
-        // Si no lo tienes, ajusta la ruta o elimina esta función
-        const response = await fetch(`/users/${loggedInUser}/playlists`);
-        if (response.ok) {
-          const playlists = await response.json();
-          const container = document.getElementById('user-playlists');
-          container.innerHTML = "";
-          playlists.forEach(pl => {
-            const li = document.createElement('li');
-            li.textContent = `${pl.name} (${pl.songs?.length || 0} songs)`;
-            container.appendChild(li);
+        const res = await fetch(`/users/${loggedInUser}/liked`);
+        const songs = await res.json();
+        songs.forEach((title) => {
+          // In your user-service, you may store only the title string,
+          // or you might store an entire song object. Adjust as needed.
+          const li = document.createElement("li");
+          li.innerHTML = `
+            ${title} <button style="margin-left:10px;">🗑️</button>
+          `;
+          // "Unlike" button -> /users/unlike (or however you prefer)
+          li.querySelector("button").addEventListener("click", async () => {
+            try {
+              const unlikeRes = await fetch("/users/unlike", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: loggedInUser, songId: title })
+              });
+              if (unlikeRes.ok) {
+                li.remove();
+              }
+            } catch (err) {
+              console.error("Error unliking song:", err);
+            }
           });
-        }
-      } catch (error) {
-        console.error("Error fetching user playlists:", error);
+          likedSongsList.appendChild(li);
+        });
+      } catch (err) {
+        console.error("Error loading liked songs:", err);
       }
     }
 
-    // ---- Helper: render array of songs into a UL ----
-    function renderSongList(songs, ulId) {
-      const ul = document.getElementById(ulId);
-      ul.innerHTML = "";
-      songs.forEach(song => {
-        const li = document.createElement('li');
-        // Asumiendo que cada 'song' es un objeto { title, artist, genre }
-        if (song.title && song.artist && song.genre) {
-          li.textContent = `${song.title} - ${song.artist} [${song.genre}]`;
-        } else {
-          // Si tu backend retorna otro formato, ajusta aquí
-          li.textContent = JSON.stringify(song);
-        }
-        ul.appendChild(li);
-      });
+    /*******************************************************
+     * 12) Load Recommendations
+     *     GET /recommendations/:username
+     *******************************************************/
+    async function loadRecommendations() {
+      try {
+        const res = await fetch(`/recommendations/${loggedInUser}`);
+        const recData = await res.json();
+        const recSongs = recData.recommendedSongs || recData; // adjust if needed
+        recSongs.forEach((song) => {
+          const li = document.createElement("li");
+          if (song.title && song.artist) {
+            li.textContent = `${song.title} - ${song.artist}`;
+          } else {
+            // If the recommendation service returns a string or a different format
+            li.textContent = JSON.stringify(song);
+          }
+          recommendedSongsList.appendChild(li);
+        });
+      } catch (err) {
+        console.error("Error loading recommendations:", err);
+      }
     }
   </script>
 </body>

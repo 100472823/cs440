@@ -1,53 +1,47 @@
-// music-service/server.js
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
+// music-service/index.js
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
+
 const app = express();
 const PORT = 3002;
 
-// Load the songs data
-const songsPath = path.join(__dirname, 'songs.json');
-function readSongs() {
-  return JSON.parse(fs.readFileSync(songsPath, 'utf8'));
+// Songs stored in songs.json
+const songsPath = path.join(__dirname, "songs.json");
+
+function loadSongs() {
+  return JSON.parse(fs.readFileSync(songsPath, "utf8"));
 }
 
 app.use(express.json());
 
-// Get all songs
-app.get('/music/songs', (req, res) => {
+// GET /music/songs
+app.get("/music/songs", (req, res) => {
   try {
-    const songs = readSongs();
+    const songs = loadSongs();
     res.json(songs);
-  } catch (error) {
-    console.error('Error reading songs:', error);
-    res.status(500).json({ error: 'Error retrieving songs.' });
+  } catch (err) {
+    console.error("Error reading songs:", err);
+    res.status(500).json({ error: "Failed to load songs" });
   }
 });
 
-// Find songs by genre
-app.get('/music/songs/genre/:genre', (req, res) => {
-  const { genre } = req.params;
-  try {
-    const songs = readSongs().filter(song => 
-      song.genre.toLowerCase() === genre.toLowerCase()
-    );
-    res.json(songs);
-  } catch (error) {
-    res.status(500).json({ error: 'Error retrieving songs by genre.' });
-  }
+// GET /music/songs/artist/:artist
+app.get("/music/songs/artist/:artist", (req, res) => {
+  const allSongs = loadSongs();
+  const filtered = allSongs.filter(
+    (s) => s.artist.toLowerCase() === req.params.artist.toLowerCase()
+  );
+  res.json(filtered);
 });
 
-// Find songs by artist
-app.get('/music/songs/artist/:artist', (req, res) => {
-  const { artist } = req.params;
-  try {
-    const songs = readSongs().filter(song => 
-      song.artist.toLowerCase() === artist.toLowerCase()
-    );
-    res.json(songs);
-  } catch (error) {
-    res.status(500).json({ error: 'Error retrieving songs by artist.' });
-  }
+// GET /music/songs/genre/:genre
+app.get("/music/songs/genre/:genre", (req, res) => {
+  const allSongs = loadSongs();
+  const filtered = allSongs.filter(
+    (s) => s.genre.toLowerCase() === req.params.genre.toLowerCase()
+  );
+  res.json(filtered);
 });
 
 // Start the Music Service
