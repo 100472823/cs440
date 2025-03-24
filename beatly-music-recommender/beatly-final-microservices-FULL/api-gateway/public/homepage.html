@@ -1,97 +1,202 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Beatly - Mi Página</title>
+  <title>Music Recommender - Homepage</title>
   <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header>
-    <h1>¡Bienvenido, <span id="username-display"></span>!</h1>
-    <nav>
-      <a href="#" id="logout-link">Cerrar Sesión</a>
-    </nav>
-  </header>
+  <section class="hero">
+    <video autoplay muted loop id="bg-video">
+      <source src="background2.mp4" type="video/mp4" />
+    </video>
+    <div class="overlay">
+      <h1>Welcome to Beatly</h1>
+      <p>Your personal music recommender</p>
+      <!-- Browser UI -->
+      <div class="browser-container">
+        <input type="text" id="song-search" placeholder="Search for songs or artists..." />
+      </div>
+    </div>
+  </section>
 
-  <main style="width: 90%; max-width: 900px; margin: 20px auto;">
-    <!-- Sección de canciones favoritas -->
-    <section class="card">
-      <h2>❤️ Tus canciones favoritas</h2>
-      <ul id="liked-songs" class="song-list"></ul>
-    </section>
+  <div class="main-container">
+    <header>
+      <h1>🎶 Welcome, <span id="username-display"></span>!</h1>
+      <nav>
+        <a href="homepage.html">Home</a>
+        <a href="#" onclick="logout()">Logout</a>
+      </nav>
+    </header>
 
-    <!-- Sección de recomendaciones -->
-    <section class="card">
-      <h2>⭐ Recomendaciones</h2>
-      <ul id="recommended-songs" class="song-list"></ul>
-    </section>
+    <main style="width: 90%; max-width: 900px; margin: 20px auto;">
 
-    <!-- Sección de todas las canciones -->
-    <section class="card">
-      <h2>🎵 Todas las canciones</h2>
-      <ul id="all-songs" class="song-list"></ul>
-    </section>
-  </main>
+      <!-- Liked Songs -->
+      <section class="card" style="margin-bottom: 20px;">
+        <h2>❤️ Your Liked Songs</h2>
+        <ul id="liked-songs" class="song-list"></ul>
+      </section>
 
+      <!-- Playlists -->
+      <section class="card" style="margin-bottom: 20px;">
+        <h2>📂 Your Playlists</h2>
+        <button onclick="toggleCreatePlaylistForm()">➕ Create New Playlist</button>
+        <div id="create-playlist-form" style="display: none; margin-top: 10px;">
+          <input type="text" id="new-playlist-name" placeholder="Playlist name..." />
+          <button onclick="createPlaylist()">Create</button>
+        </div>
+        <ul id="user-playlists" class="song-list" style="margin-top: 15px;"></ul>
+      </section>
+
+      <!-- Recommendations -->
+      <section class="card" style="margin-bottom: 20px;">
+        <h2>Recommended for You</h2>
+        <ul id="recommended-songs" class="song-list"></ul>
+      </section>
+
+      <!-- All Songs -->
+      <section class="card">
+        <h2>🎵 All Songs</h2>
+        <ul id="all-songs" class="song-list"></ul>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; CS440 Group 11</p>
+    </footer>
+  </div>
+
+  <!-- SCRIPT: Lógica de homepage -->
   <script>
-    const usernameDisplay = document.getElementById("username-display");
-    const logoutLink = document.getElementById("logout-link");
-    const likedSongsList = document.getElementById("liked-songs");
-    const recommendedSongsList = document.getElementById("recommended-songs");
-    const allSongsList = document.getElementById("all-songs");
-
-    // 1) Verificar si hay usuario logueado en localStorage
-    const loggedInUser = localStorage.getItem("loggedInUser");
+    // Check if user is logged in
+    const loggedInUser = localStorage.getItem('loggedInUser');
     if (!loggedInUser) {
-      // Si no hay usuario, redirigir a login
-      window.location.href = "login.html";
-    } else {
-      usernameDisplay.textContent = loggedInUser;
-      loadUserData(loggedInUser);
+      // If not logged, redirect to index (or login)
+      window.location.href = 'login.html';
     }
 
-    // 2) Evento de logout
-    logoutLink.addEventListener("click", () => {
-      localStorage.removeItem("loggedInUser");
-      window.location.href = "login.html";
-    });
+    // Display username
+    const usernameDisplay = document.getElementById('username-display');
+    usernameDisplay.textContent = loggedInUser;
 
-    // Función para cargar datos del usuario
-    async function loadUserData(username) {
+    // Logout function
+    function logout() {
+      localStorage.removeItem('loggedInUser');
+      window.location.href = 'index.html';
+    }
+
+    // ---- PLAYLISTS: toggle create form ----
+    function toggleCreatePlaylistForm() {
+      const form = document.getElementById('create-playlist-form');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // ---- PLAYLISTS: create new playlist (example) ----
+    async function createPlaylist() {
+      const playlistName = document.getElementById('new-playlist-name').value.trim();
+      if (!playlistName) return alert("Please enter a playlist name!");
+
       try {
-        // A) Canciones favoritas => /users/:username/liked
-        const likedRes = await fetch(`/users/${username}/liked`);
-        const likedSongs = await likedRes.json();
-        renderSongList(likedSongs, likedSongsList);
-
-        // B) Recomendaciones => /recommendations/:username
-        const recRes = await fetch(`/recommendations/${username}`);
-        const recData = await recRes.json();
-        // Suponiendo que devuelves { recommendedSongs: [...], user: "..." } 
-        // en tu recommendation-service. Ajusta según tu API real.
-        renderSongList(recData.recommendedSongs || [], recommendedSongsList);
-
-        // C) Todas las canciones => /music/songs
-        const allSongsRes = await fetch("/music/songs");
-        const allSongs = await allSongsRes.json();
-        renderSongList(allSongs, allSongsList);
-
+        const res = await fetch(`/users/${loggedInUser}/playlists`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playlistName })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert("Playlist created!");
+          // Clear input
+          document.getElementById('new-playlist-name').value = '';
+          toggleCreatePlaylistForm();
+          // Reload the playlists
+          loadUserPlaylists();
+        } else {
+          alert(data.message || "Error creating playlist");
+        }
       } catch (error) {
-        console.error("Error al cargar datos del usuario:", error);
+        console.error("Error creating playlist:", error);
       }
     }
 
-    function renderSongList(songs, containerUl) {
-      containerUl.innerHTML = "";
+    // ---- Load user data on page load ----
+    window.addEventListener('DOMContentLoaded', () => {
+      loadLikedSongs();
+      loadRecommendedSongs();
+      loadAllSongs();
+      loadUserPlaylists();
+    });
+
+    // ---- Liked Songs ----
+    async function loadLikedSongs() {
+      try {
+        const response = await fetch(`/users/${loggedInUser}/liked`);
+        const likedSongs = await response.json();
+        renderSongList(likedSongs, 'liked-songs');
+      } catch (error) {
+        console.error("Error fetching liked songs:", error);
+      }
+    }
+
+    // ---- Recommended Songs ----
+    async function loadRecommendedSongs() {
+      try {
+        const response = await fetch(`/recommendations/${loggedInUser}`);
+        const recData = await response.json();
+        // Si tu recommendation-service retorna { recommendedSongs: [...], user: "..." }
+        const songs = recData.recommendedSongs || recData;
+        renderSongList(songs, 'recommended-songs');
+      } catch (error) {
+        console.error("Error fetching recommended songs:", error);
+      }
+    }
+
+    // ---- All Songs (Music Service) ----
+    async function loadAllSongs() {
+      try {
+        const response = await fetch("/music/songs");
+        const allSongs = await response.json();
+        renderSongList(allSongs, 'all-songs');
+      } catch (error) {
+        console.error("Error fetching all songs:", error);
+      }
+    }
+
+    // ---- User Playlists (optional) ----
+    async function loadUserPlaylists() {
+      try {
+        // Suponiendo que tu user-service tenga un GET /users/:username/playlists
+        // Si no lo tienes, ajusta la ruta o elimina esta función
+        const response = await fetch(`/users/${loggedInUser}/playlists`);
+        if (response.ok) {
+          const playlists = await response.json();
+          const container = document.getElementById('user-playlists');
+          container.innerHTML = "";
+          playlists.forEach(pl => {
+            const li = document.createElement('li');
+            li.textContent = `${pl.name} (${pl.songs?.length || 0} songs)`;
+            container.appendChild(li);
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user playlists:", error);
+      }
+    }
+
+    // ---- Helper: render array of songs into a UL ----
+    function renderSongList(songs, ulId) {
+      const ul = document.getElementById(ulId);
+      ul.innerHTML = "";
       songs.forEach(song => {
-        const li = document.createElement("li");
-        if (song.title && song.artist) {
+        const li = document.createElement('li');
+        // Asumiendo que cada 'song' es un objeto { title, artist, genre }
+        if (song.title && song.artist && song.genre) {
           li.textContent = `${song.title} - ${song.artist} [${song.genre}]`;
         } else {
-          // Si tus recomendaciones devuelven un string en vez de un objeto, ajusta aquí
+          // Si tu backend retorna otro formato, ajusta aquí
           li.textContent = JSON.stringify(song);
         }
-        containerUl.appendChild(li);
+        ul.appendChild(li);
       });
     }
   </script>
