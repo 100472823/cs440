@@ -11,7 +11,7 @@ document.getElementById('signup-form').addEventListener('submit', function(event
       return;
     }
   
-    fetch('/signup', {
+    fetch('/user/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })

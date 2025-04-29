@@ -9,7 +9,7 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     // pero si prefieres poner la ruta absoluta, haz:
     // fetch('http://localhost:5500/login', {...})
     
-    fetch('/login', {
+    fetch('/user/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
