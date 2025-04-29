@@ -1,0 +1,43 @@
+[
+  {
+    "title": "Bohemian Rhapsody",
+    "artist": "Queen",
+    "genre": "Rock"
+  },
+  {
+    "title": "Stairway to Heaven",
+    "artist": "Led Zeppelin",
+    "genre": "Rock"
+  },
+  {
+    "title": "Hotel California",
+    "artist": "Eagles",
+    "genre": "Rock"
+  },
+  {
+    "title": "Imagine",
+    "artist": "John Lennon",
+    "genre": "Classic Rock"
+  },
+  {
+    "title": "Smells Like Teen Spirit",
+    "artist": "Nirvana",
+    "genre": "Grunge"
+  },
+  {
+    "title": "Billie Jean",
+    "artist": "Michael Jackson",
+    "genre": "Pop"
+  },
+  {
+    "title": "Hey Jude",
+    "artist": "The Beatles",
+    "genre": "Rock"
+  },
+  {
+    "title": "Like a Rolling Stone",
+    "artist": "Bob Dylan",
+    "genre": "Folk Rock"
+  }
+  
+]

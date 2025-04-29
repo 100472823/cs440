@@ -1,0 +1,335 @@
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Header */
+header {
+    background: linear-gradient(135deg, #008080, #4b0082);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    width: 100%;
+    border-radius: 20px;
+}
+
+/* Navigation */
+nav {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 10px 15px;
+    transition: 0.3s ease;
+}
+
+nav a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+}
+
+/* Footer */
+footer {
+    background: linear-gradient(135deg, #008080, #4b0082);
+    color: white;
+    text-align: center;
+    padding: 20px;
+    margin-top: auto;
+    width: 100%;
+    border-radius: 20px;
+}
+
+/* Cards */
+.card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    transition: 0.3s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    transform: scale(1.02);
+}
+
+/* Buttons */
+button {
+    background-color: #4b6cb7;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+button:hover {
+    background-color: #4b3b83;
+    transform: scale(1.1);
+}
+
+/* Forms */
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#message {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+/* Song List */
+#song-list {
+    list-style: none;
+    padding: 0;
+}
+
+#song-list li {
+    background-color: #f0f0f0;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Login Form Styling */
+#loginForm {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    margin: 20px;
+}
+
+#loginForm h2 {
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-size: 2rem;
+}
+
+#loginForm label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #555;
+    font-size: 1rem;
+    text-align: left;
+}
+
+#loginForm input[type="text"],
+#loginForm input[type="password"] {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+#loginForm button[type="submit"] {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #4b6cb7;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#loginForm button[type="submit"]:hover {
+    background-color: #4b3b83;
+}
+
+#loginForm #message {
+    margin-top: 1rem;
+    color: #ff0000;
+    font-size: 0.9rem;
+}
+
+/* homepage styles */
+.song-list {
+    list-style: none;
+    padding: 0;
+}
+
+.song-list li {
+    background-color: #f0f0f0;
+    margin-bottom: 5px;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* General Reset & Font */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #aeaeae;
+    color: #1b1919;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  
+  /* Hero Section with Video */
+  .hero {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+    width: 100%;
+  }
+  
+  #bg-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.5);
+    z-index: -1;
+  }
+  
+  .overlay {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .overlay h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+  }
+  
+  .overlay p {
+    font-size: 1.3rem;
+    opacity: 0.85;
+  }
+  
+  .main-container {
+    max-width: 1400px;
+    width: 90%;
+    margin: 40px auto;
+    padding: 50px;
+    border-radius: 20px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.15);
+    color: rgb(0, 0, 0);
+    position: relative;
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+                url('photobackground.jpg') no-repeat center center/cover;
+  }
+  
+  
+  /* Buttons */
+  button {
+    background: rgba(75, 108, 183, 0.9);
+    border: none;
+    color: white;
+    padding: 10px 15px;
+    margin: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #ff5e6c;
+    color: white;
+    transform: scale(1.05);
+  }
+  
+  /* Song List */
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  .song-list li,
+  #song-list li {
+    background-color: #f0f0f0;
+    margin-bottom: 5px;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Animation */
+  .fade-in {
+    animation: fade 0.5s ease-in forwards;
+    opacity: 0;
+  }
+  
+  @keyframes fade {
+    to {
+      opacity: 1;
+    }
+  }
+
+  .browser-container {
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    padding: 12px 20px;
+    border-radius: 50px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 500px;
+  }
+  
+  #song-search {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 1rem;
+    padding: 8px 10px;
+    color: white;
+    outline: none;
+    font-family: 'Poppins', sans-serif;
+    width: 100%;
+  }
+  
+  #song-search::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  
