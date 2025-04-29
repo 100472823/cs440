@@ -1,3 +1,4 @@
+// test
 document.addEventListener('DOMContentLoaded', () => {
   fetch('/songs')
     .then((res) => res.json())
