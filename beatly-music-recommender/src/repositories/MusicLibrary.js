@@ -1,6 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
-const Song = require('./Song');
+const Song = require('../models/Song');
 
 const songsDbPath = path.join(__dirname, '..','..', 'database', 'songs.json'); 
 
