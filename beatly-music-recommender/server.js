@@ -7,9 +7,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Import Models
 const { User } = require('./src/models/User');
-const MusicLibrary = require('./src/models/MusicLibrary.js');
+const MusicLibrary = require('./src/repositories/MusicLibrary.js');
 //const Playlist = require('./src/models/Playlist.js');
-const RecommenderEngine = require('./src/models/RecommendationEngine.js');
+const RecommenderEngine = require('./src/services/RecommendationEngine.js');
 const playlistRoutes = require('./src/routes/playlistRoutes');
 
 
